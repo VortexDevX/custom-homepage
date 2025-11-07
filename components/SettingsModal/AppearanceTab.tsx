@@ -4,6 +4,7 @@ import { useTheme } from "next-themes";
 import { useState, useEffect } from "react";
 import { motion } from "framer-motion";
 import Image from "next/image";
+import BackgroundImage from "@/components/BackgroundImage";
 
 interface AppearanceTabProps {
   settings: any;
@@ -264,50 +265,27 @@ export default function AppearanceTab({
           </p>
           <div className="grid grid-cols-3 gap-4 max-h-96 overflow-y-auto p-1">
             {(currentTheme === "dark" ? darkBackgrounds : lightBackgrounds).map(
-              (bgPath, index) => {
-                // Try WebP first, fallback to original format
-                const [imgSrc, setImgSrc] = useState(bgPath);
-
-                return (
-                  <motion.button
-                    key={bgPath}
-                    whileHover={{ scale: 1.05, y: -4 }}
-                    whileTap={{ scale: 0.95 }}
-                    onClick={() =>
-                      onSettingsChange({
-                        ...settings,
-                        selectedBg: imgSrc,
-                      })
-                    }
-                    className={`relative aspect-video rounded-xl overflow-hidden transition-all shadow-md ${
-                      settings.selectedBg === imgSrc
-                        ? "ring-4 ring-(--accent) shadow-xl scale-105"
-                        : "opacity-70 hover:opacity-100"
-                    }`}
-                    aria-label={`Select background ${index + 1}`}
-                  >
-                    <Image
-                      src={imgSrc}
-                      alt={`Background ${index + 1}`}
-                      fill
-                      sizes="(max-width: 768px) 33vw, 20vw"
-                      className="object-cover"
-                      loading="lazy"
-                      quality={75}
-                      onError={(e) => {
-                        // If WebP fails, try original format
-                        if (imgSrc.endsWith(".webp")) {
-                          const originalSrc = imgSrc.replace(
-                            ".webp",
-                            imgSrc.includes("light") ? ".jpg" : ".png"
-                          );
-                          setImgSrc(originalSrc);
-                        }
-                      }}
-                    />
-                  </motion.button>
-                );
-              }
+              (bgPath, index) => (
+                <motion.button
+                  key={bgPath}
+                  whileHover={{ scale: 1.05, y: -4 }}
+                  whileTap={{ scale: 0.95 }}
+                  onClick={() =>
+                    onSettingsChange({
+                      ...settings,
+                      selectedBg: bgPath,
+                    })
+                  }
+                  className={`relative aspect-video rounded-xl overflow-hidden transition-all shadow-md ${
+                    settings.selectedBg === bgPath
+                      ? "ring-4 ring-(--accent) shadow-xl scale-105"
+                      : "opacity-70 hover:opacity-100"
+                  }`}
+                  aria-label={`Select background ${index + 1}`}
+                >
+                  <BackgroundImage src={bgPath} index={index} />
+                </motion.button>
+              )
             )}
           </div>
         </motion.div>
