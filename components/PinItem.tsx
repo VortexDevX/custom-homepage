@@ -117,7 +117,6 @@ export default function PinItem({
 
           <a
             href={pin.url}
-            target="_blank"
             rel="noopener noreferrer"
             className="flex flex-col items-center gap-3 text-center group"
           >
