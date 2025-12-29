@@ -5,7 +5,6 @@ import { useSortable } from "@dnd-kit/sortable";
 import { CSS } from "@dnd-kit/utilities";
 import { GripVertical, ExternalLink, X } from "lucide-react";
 import { Pin } from "@/lib/storage";
-import Image from "next/image";
 
 interface PinItemProps {
   pin: Pin;
@@ -126,19 +125,16 @@ export default function PinItem({
                 transition={{ type: "spring", stiffness: 300, damping: 10 }}
                 className="h-12 w-12 rounded-xl overflow-hidden shadow-md relative"
               >
-                <Image
+                <img
                   src={pin.icon || getFavicon(pin.url)!}
                   alt={`${pin.title} icon`}
-                  fill
-                  sizes="48px"
-                  className="object-cover"
+                  className="w-full h-full object-cover"
                   onError={(e) => {
                     const target = e.target as HTMLImageElement;
                     target.style.display = "none";
                     target.parentElement!.innerHTML =
-                      '<div class="h-full w-full bg-(--accent) bg-opacity-20 flex items-center justify-center"><ExternalLink class="h-5 w-5 text-(--accent) drop-shadow-sm" /></div>';
+                      '<div class="h-full w-full bg-(--accent) bg-opacity-20 flex items-center justify-center"><svg class="h-5 w-5 text-(--accent)" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14"></path></svg></div>';
                   }}
-                  quality={75}
                   loading="lazy"
                 />
               </motion.div>
