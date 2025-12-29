@@ -48,7 +48,7 @@ export interface AppSettings {
 
 const defaultSettings: AppSettings = {
   schemaVersion: SCHEMA_VERSION,
-  searchEngine: "duckduckgo",
+  searchEngine: "google",
   weatherUnit: "C",
   bgMode: "auto",
   overlayStrength: 30,
@@ -75,7 +75,9 @@ export function useLocalStorage<T>(
     } catch (error) {
       console.error(`Error loading ${key} from localStorage:`, error);
     }
-  }, [key]);
+    // Only run once on mount
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
 
   const setValue = (value: T | ((val: T) => T)) => {
     try {

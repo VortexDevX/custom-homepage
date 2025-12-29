@@ -179,3 +179,16 @@ body {
 .scrollbar-hide::-webkit-scrollbar {
   display: none;
 }
+
+/* Performance optimizations for animations */
+.glass,
+button,
+a {
+  will-change: auto;
+}
+
+/* Optimize animations for common transforms */
+[data-framer-motion] {
+  transform: translateZ(0);
+  backface-visibility: hidden;
+}

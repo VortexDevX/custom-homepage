@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useMemo, useCallback } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import {
   DndContext,
@@ -55,7 +55,7 @@ export default function PinnedGrid({
     }
   };
 
-  const handleAddPin = () => {
+  const handleAddPin = useCallback(() => {
     if (newTitle.trim() && newUrl.trim()) {
       const newPin: Pin = {
         id: Date.now().toString(),
@@ -67,17 +67,26 @@ export default function PinnedGrid({
       setNewUrl("");
       setShowAddForm(false);
     }
-  };
+  }, [newTitle, newUrl, pins, onPinsChange]);
 
-  const handleRemovePin = (id: string) => {
-    onPinsChange(pins.filter((pin) => pin.id !== id));
-  };
+  const handleRemovePin = useCallback(
+    (id: string) => {
+      onPinsChange(pins.filter((pin) => pin.id !== id));
+    },
+    [pins, onPinsChange]
+  );
 
-  const handleEditPin = (id: string, title: string, url: string) => {
-    onPinsChange(
-      pins.map((pin) => (pin.id === id ? { ...pin, title, url } : pin))
-    );
-  };
+  const handleEditPin = useCallback(
+    (id: string, title: string, url: string) => {
+      onPinsChange(
+        pins.map((pin) => (pin.id === id ? { ...pin, title, url } : pin))
+      );
+    },
+    [pins, onPinsChange]
+  );
+
+  // Memoize pins IDs to prevent unnecessary SortableContext updates
+  const pinIds = useMemo(() => pins.map((p) => p.id), [pins]);
 
   return (
     <div className="w-full">
@@ -207,10 +216,7 @@ export default function PinnedGrid({
         collisionDetection={closestCenter}
         onDragEnd={handleDragEnd}
       >
-        <SortableContext
-          items={pins.map((p) => p.id)}
-          strategy={rectSortingStrategy}
-        >
+        <SortableContext items={pinIds} strategy={rectSortingStrategy}>
           <motion.div
             initial={false}
             animate={{ opacity: 1 }}

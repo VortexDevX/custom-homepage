@@ -25,7 +25,7 @@ export async function GET(request: NextRequest) {
     const response = await fetch(
       `https://api.weatherapi.com/v1/current.json?key=${apiKey}&q=${city}&aqi=no`,
       {
-        next: { revalidate: 600 }, // Cache for 10 minutes
+        next: { revalidate: 1800 }, // Cache for 30 minutes
       }
     );
 

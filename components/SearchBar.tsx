@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useRef, useEffect } from "react";
+import { useState, useRef, useEffect, useCallback } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { Search, Clock } from "lucide-react";
 
@@ -115,25 +115,32 @@ export default function SearchBar({
       setSelectedIndex(-1);
     } else if (e.key === "Enter" && selectedIndex >= 0) {
       e.preventDefault();
-      handleSearch(suggestions[selectedIndex]);
+      handleSearch(suggestions[selectedIndex]!);
     }
   };
 
-  const handleSearch = (searchQuery: string) => {
-    if (searchQuery.trim()) {
-      const engine = searchEngines[searchEngine as keyof typeof searchEngines];
-      window.open(engine.url + encodeURIComponent(searchQuery), "_blank");
-      setQuery("");
-      setSuggestions([]);
-      setShowSuggestions(false);
-      setSelectedIndex(-1);
-    }
-  };
+  const handleSearch = useCallback(
+    (searchQuery: string) => {
+      if (searchQuery.trim()) {
+        const engine =
+          searchEngines[searchEngine as keyof typeof searchEngines];
+        window.open(engine.url + encodeURIComponent(searchQuery), "_blank");
+        setQuery("");
+        setSuggestions([]);
+        setShowSuggestions(false);
+        setSelectedIndex(-1);
+      }
+    },
+    [searchEngine]
+  );
 
-  const handleSubmit = (e: React.FormEvent) => {
-    e.preventDefault();
-    handleSearch(query);
-  };
+  const handleSubmit = useCallback(
+    (e: React.FormEvent) => {
+      e.preventDefault();
+      handleSearch(query);
+    },
+    [query, handleSearch]
+  );
 
   const currentEngine =
     searchEngines[searchEngine as keyof typeof searchEngines] ||

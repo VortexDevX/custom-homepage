@@ -41,7 +41,7 @@ export default function NotesWidget({
   const [filterLabel, setFilterLabel] = useState<string | null>(null);
   const dragControls = useDragControls();
 
-  const handleDragEnd = (event: any, info: PanInfo) => {
+  const handleDragEnd = (_event: unknown, info: PanInfo) => {
     onPositionChange({
       x: position.x + info.offset.x,
       y: position.y + info.offset.y,

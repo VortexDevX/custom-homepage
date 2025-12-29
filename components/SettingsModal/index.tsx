@@ -67,25 +67,15 @@ export default function SettingsModal({
           aria-modal="true"
           aria-labelledby="settings-title"
         >
-          {/* Backdrop with blur */}
-          <motion.div
-            initial={{ backdropFilter: "blur(0px)", opacity: 0 }}
-            animate={{ backdropFilter: "blur(12px)", opacity: 1 }}
-            exit={{ backdropFilter: "blur(0px)", opacity: 0 }}
-            transition={{ duration: 0.3 }}
-            className="absolute inset-0 bg-black/50"
-          />
+          {/* Backdrop - static blur for better performance */}
+          <div className="absolute inset-0 bg-black/50 backdrop-blur-md" />
 
           {/* Modal Container */}
           <motion.div
-            initial={{ opacity: 0, scale: 0.85, y: 40 }}
-            animate={{ opacity: 1, scale: 1, y: 0 }}
-            exit={{ opacity: 0, scale: 0.9, y: 20 }}
-            transition={{
-              type: "spring",
-              stiffness: 260,
-              damping: 22,
-            }}
+            initial={{ opacity: 0, scale: 0.95 }}
+            animate={{ opacity: 1, scale: 1 }}
+            exit={{ opacity: 0, scale: 0.95 }}
+            transition={{ duration: 0.15, ease: "easeOut" }}
             className="relative w-full max-w-6xl h-[90vh] flex flex-col md:flex-row glass rounded-3xl overflow-hidden shadow-2xl"
             onClick={(e) => e.stopPropagation()}
           >
@@ -100,15 +90,13 @@ export default function SettingsModal({
                   >
                     Settings
                   </h2>
-                  <motion.button
-                    whileHover={{ scale: 1.1, rotate: 90 }}
-                    whileTap={{ scale: 0.9 }}
+                  <button
                     onClick={onClose}
-                    className="md:hidden ml-auto p-2 hover:bg-red-500/15 rounded-xl transition-all"
+                    className="md:hidden ml-auto p-2 hover:bg-red-500/15 rounded-xl transition-colors"
                     aria-label="Close settings"
                   >
                     <X className="h-5 w-5 text-red-500" />
-                  </motion.button>
+                  </button>
                 </div>
                 <p className="text-sm text-(--text-muted) font-medium">
                   Customize your experience
@@ -121,10 +109,8 @@ export default function SettingsModal({
                   const Icon = tab.icon;
                   const isActive = activeTab === tab.id;
                   return (
-                    <motion.button
+                    <button
                       key={tab.id}
-                      whileHover={{ x: 4 }}
-                      whileTap={{ scale: 0.98 }}
                       onClick={() => setActiveTab(tab.id)}
                       className={`flex items-center gap-3 px-4 py-3 rounded-xl transition-all text-left whitespace-nowrap ${
                         isActive
@@ -138,21 +124,19 @@ export default function SettingsModal({
                         }`}
                       />
                       <span className="font-medium text-sm">{tab.label}</span>
-                    </motion.button>
+                    </button>
                   );
                 })}
               </nav>
 
               {/* Close button for desktop */}
-              <motion.button
-                whileHover={{ scale: 1.05 }}
-                whileTap={{ scale: 0.95 }}
+              <button
                 onClick={onClose}
-                className="hidden md:flex items-center justify-center gap-2 w-full mt-8 px-4 py-3 glass rounded-xl hover:bg-opacity-70 transition-all text-sm font-medium shadow-md"
+                className="hidden md:flex items-center justify-center gap-2 w-full mt-8 px-4 py-3 glass rounded-xl hover:bg-opacity-70 transition-colors text-sm font-medium shadow-md"
               >
                 <X className="h-4 w-4" />
                 Close
-              </motion.button>
+              </button>
             </div>
 
             {/* Content Area */}
@@ -173,66 +157,53 @@ export default function SettingsModal({
                     {activeTab === "Data" && "Manage your settings and data"}
                   </p>
                 </div>
-                <motion.button
-                  whileHover={{ scale: 1.1, rotate: 90 }}
-                  whileTap={{ scale: 0.9 }}
+                <button
                   onClick={onClose}
-                  className="p-2.5 hover:bg-red-500/15 rounded-xl transition-all"
+                  className="p-2.5 hover:bg-red-500/15 rounded-xl transition-colors"
                   aria-label="Close settings"
                 >
                   <X className="h-5 w-5 text-red-500" />
-                </motion.button>
+                </button>
               </div>
 
               {/* Tab Content */}
               <div className="flex-1 overflow-y-auto overflow-x-hidden">
-                <AnimatePresence mode="wait">
-                  <motion.div
-                    key={activeTab}
-                    initial={{ opacity: 0, x: 20 }}
-                    animate={{ opacity: 1, x: 0 }}
-                    exit={{ opacity: 0, x: -20 }}
-                    transition={{ duration: 0.25, ease: "easeOut" }}
-                    className="p-6 md:p-8"
-                  >
-                    {activeTab === "General" && (
-                      <GeneralTab
-                        settings={settings}
-                        onSettingsChange={onSettingsChange}
-                      />
-                    )}
-                    {activeTab === "Appearance" && (
-                      <AppearanceTab
-                        settings={settings}
-                        onSettingsChange={onSettingsChange}
-                      />
-                    )}
-                    {activeTab === "Weather" && (
-                      <WeatherTab
-                        settings={settings}
-                        onSettingsChange={onSettingsChange}
-                      />
-                    )}
-                    {activeTab === "Data" && (
-                      <DataTab
-                        settings={settings}
-                        onSettingsChange={onSettingsChange}
-                      />
-                    )}
-                  </motion.div>
-                </AnimatePresence>
+                <div className="p-6 md:p-8">
+                  {activeTab === "General" && (
+                    <GeneralTab
+                      settings={settings}
+                      onSettingsChange={onSettingsChange}
+                    />
+                  )}
+                  {activeTab === "Appearance" && (
+                    <AppearanceTab
+                      settings={settings}
+                      onSettingsChange={onSettingsChange}
+                    />
+                  )}
+                  {activeTab === "Weather" && (
+                    <WeatherTab
+                      settings={settings}
+                      onSettingsChange={onSettingsChange}
+                    />
+                  )}
+                  {activeTab === "Data" && (
+                    <DataTab
+                      settings={settings}
+                      onSettingsChange={onSettingsChange}
+                    />
+                  )}
+                </div>
               </div>
 
               {/* Footer - Mobile only */}
               <div className="md:hidden border-t border-(--panel-border) p-4 bg-(--panel-bg)/50">
-                <motion.button
-                  whileHover={{ scale: 1.02 }}
-                  whileTap={{ scale: 0.98 }}
+                <button
                   onClick={onClose}
-                  className="w-full px-6 py-3 bg-(--accent) text-white rounded-xl font-medium shadow-lg"
+                  className="w-full px-6 py-3 bg-(--accent) text-white rounded-xl font-medium shadow-lg hover:opacity-90 transition-opacity"
                 >
                   Save & Close
-                </motion.button>
+                </button>
               </div>
             </div>
           </motion.div>

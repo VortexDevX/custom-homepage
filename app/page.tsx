@@ -2,8 +2,9 @@
 
 import { useState, useEffect, lazy, Suspense } from "react";
 import { useTheme } from "next-themes";
-import { motion, AnimatePresence } from "framer-motion";
+import { motion } from "framer-motion";
 import { useAppSettings } from "@/lib/storage";
+import { useBackground } from "@/hooks/useBackground";
 import TopBar from "@/components/TopBar";
 import PinnedGrid from "@/components/PinnedGrid";
 import Image from "next/image";
@@ -21,43 +22,35 @@ export default function Home() {
   const { theme, setTheme } = useTheme();
   const [mounted, setMounted] = useState(false);
   const [currentTheme, setCurrentTheme] = useState<string>("light");
-  const [autoBackground, setAutoBackground] = useState<string>("");
 
+  // Combined initialization effect
   useEffect(() => {
     setMounted(true);
-  }, []);
 
-  // Track current theme (resolved from system preference if needed)
-  useEffect(() => {
-    if (theme === "system") {
-      const isDark = window.matchMedia("(prefers-color-scheme: dark)").matches;
-      setCurrentTheme(isDark ? "dark" : "light");
-    } else {
-      setCurrentTheme(theme || "light");
-    }
+    // Track current theme (resolved from system preference if needed)
+    const updateTheme = () => {
+      if (theme === "system") {
+        const isDark = window.matchMedia(
+          "(prefers-color-scheme: dark)"
+        ).matches;
+        setCurrentTheme(isDark ? "dark" : "light");
+      } else {
+        setCurrentTheme(theme || "light");
+      }
+    };
+
+    updateTheme();
   }, [theme]);
 
-  // Auto mode: randomly select a background based on theme
-  useEffect(() => {
-    if (settings.bgMode === "auto" && currentTheme) {
-      const themeFolder = currentTheme === "dark" ? "dark" : "light";
-      const randomNum = Math.floor(Math.random() * 7) + 1; // Only 7 backgrounds now
+  // Use custom hook for background management
+  const backgroundImage = useBackground({
+    bgMode: settings.bgMode,
+    customBg: settings.customBg,
+    selectedBg: settings.selectedBg,
+    currentTheme,
+  });
 
-      // Determine file extension based on your actual files
-      let ext = "jpg";
-      if (themeFolder === "light") {
-        // Light: 2, 4, 5, 6 are PNG, others are JPG
-        ext = [2, 4, 5, 6].includes(randomNum) ? "png" : "jpg";
-      } else {
-        // Dark: All are PNG
-        ext = "png";
-      }
-
-      setAutoBackground(`/backgrounds/${themeFolder}/${randomNum}.${ext}`);
-    }
-  }, [settings.bgMode, currentTheme]);
-
-  // Handle Ctrl+K for command palette
+  // Combined keyboard and accent color effect
   useEffect(() => {
     const handleKeyDown = (e: KeyboardEvent) => {
       if ((e.ctrlKey || e.metaKey) && e.key === "k") {
@@ -67,14 +60,13 @@ export default function Home() {
     };
 
     document.addEventListener("keydown", handleKeyDown);
-    return () => document.removeEventListener("keydown", handleKeyDown);
-  }, []);
 
-  // Apply custom accent color
-  useEffect(() => {
+    // Apply custom accent color
     if (settings.accent) {
       document.documentElement.style.setProperty("--accent", settings.accent);
     }
+
+    return () => document.removeEventListener("keydown", handleKeyDown);
   }, [settings.accent]);
 
   if (!mounted) {
@@ -92,22 +84,6 @@ export default function Home() {
     );
   }
 
-  // Determine which background to use
-  const getBackgroundImage = () => {
-    if (settings.bgMode === "custom" && settings.customBg) {
-      return settings.customBg;
-    }
-    if (settings.bgMode === "manual" && settings.selectedBg) {
-      return settings.selectedBg;
-    }
-    if (settings.bgMode === "auto" && autoBackground) {
-      return autoBackground;
-    }
-    return undefined;
-  };
-
-  const backgroundImage = getBackgroundImage();
-
   return (
     <div className="min-h-screen bg-background relative overflow-hidden">
       {/* Background Image */}
@@ -123,17 +99,6 @@ export default function Home() {
             quality={85}
             placeholder="blur"
             blurDataURL="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVR42mP8/5+hHgAHggJ/PchI7wAAAABJRU5ErkJggg=="
-            onError={(e) => {
-              // If WebP fails, try original format
-              if (backgroundImage.endsWith(".webp")) {
-                const originalSrc = backgroundImage.replace(
-                  ".webp",
-                  backgroundImage.includes("light") ? ".jpg" : ".png"
-                );
-                // This would require a state update to properly handle, but we'll just log for now
-                console.log("Falling back to original format:", originalSrc);
-              }
-            }}
           />
         </div>
       )}
@@ -148,6 +113,7 @@ export default function Home() {
 
       {/* Main Content */}
       <motion.div
+        id="main-content"
         initial={{ opacity: 0, y: 20 }}
         animate={{ opacity: 1, y: 0 }}
         transition={{ duration: 0.5, ease: "easeOut" }}

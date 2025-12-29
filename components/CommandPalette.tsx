@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect, useRef } from "react";
+import { useState, useEffect, useRef, useMemo } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import {
   Search,
@@ -14,6 +14,7 @@ import {
   Sparkles,
 } from "lucide-react";
 import { Pin } from "@/lib/storage";
+import { getFavicon } from "@/lib/utils";
 import Image from "next/image";
 
 interface CommandPaletteProps {
@@ -49,96 +50,96 @@ export default function CommandPalette({
   const inputRef = useRef<HTMLInputElement>(null);
   const listRef = useRef<HTMLDivElement>(null);
 
-  const commands: CommandItem[] = [
-    {
-      id: "settings",
-      label: "Open Settings",
-      description: "Customize your homepage",
-      icon: <Settings className="h-5 w-5" />,
-      action: () => {
-        onOpenSettings();
-        onClose();
-      },
-      category: "Actions",
-    },
-    {
-      id: "theme",
-      label: `Switch to ${theme === "dark" ? "Light" : "Dark"} Theme`,
-      description: `Activate ${theme === "dark" ? "light" : "dark"} mode`,
-      icon:
-        theme === "dark" ? (
-          <Sun className="h-5 w-5" />
-        ) : (
-          <Moon className="h-5 w-5" />
-        ),
-      action: () => {
-        onToggleTheme();
-        onClose();
-      },
-      category: "Actions",
-    },
-    {
-      id: "notes",
-      label: "Toggle Notes",
-      description: "Show or hide notes widget",
-      icon: <StickyNote className="h-5 w-5" />,
-      action: () => {
-        onToggleNotes();
-        onClose();
-      },
-      category: "Actions",
-    },
-    ...pins.map((pin) => {
-      const getFavicon = (url: string) => {
-        try {
-          const domain = new URL(url).hostname;
-          return `https://www.google.com/s2/favicons?domain=${domain}&sz=64`;
-        } catch {
-          return null;
-        }
-      };
-
-      const faviconUrl = pin.icon || getFavicon(pin.url);
-
-      return {
-        id: `pin-${pin.id}`,
-        label: pin.title,
-        description: new URL(pin.url).hostname,
-        icon: faviconUrl ? (
-          <div className="h-5 w-5 rounded-sm overflow-hidden relative">
-            <Image
-              src={faviconUrl}
-              alt={`${pin.title} icon`}
-              fill
-              sizes="20px"
-              className="object-cover"
-              onError={(e) => {
-                const target = e.target as HTMLImageElement;
-                target.style.display = "none";
-                target.parentElement!.innerHTML =
-                  '<svg class="h-5 w-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14"></path></svg>';
-              }}
-              quality={75}
-              loading="lazy"
-            />
-          </div>
-        ) : (
-          <ExternalLink className="h-5 w-5" />
-        ),
+  // Memoize commands array to prevent recreation on every render
+  const commands: CommandItem[] = useMemo(
+    () => [
+      {
+        id: "settings",
+        label: "Open Settings",
+        description: "Customize your homepage",
+        icon: <Settings className="h-5 w-5" />,
         action: () => {
-          window.open(pin.url, "_blank");
+          onOpenSettings();
           onClose();
         },
-        category: "Pinned Sites",
-      };
-    }),
-  ];
+        category: "Actions",
+      },
+      {
+        id: "theme",
+        label: `Switch to ${theme === "dark" ? "Light" : "Dark"} Theme`,
+        description: `Activate ${theme === "dark" ? "light" : "dark"} mode`,
+        icon:
+          theme === "dark" ? (
+            <Sun className="h-5 w-5" />
+          ) : (
+            <Moon className="h-5 w-5" />
+          ),
+        action: () => {
+          onToggleTheme();
+          onClose();
+        },
+        category: "Actions",
+      },
+      {
+        id: "notes",
+        label: "Toggle Notes",
+        description: "Show or hide notes widget",
+        icon: <StickyNote className="h-5 w-5" />,
+        action: () => {
+          onToggleNotes();
+          onClose();
+        },
+        category: "Actions",
+      },
+      ...pins.map((pin) => {
+        const faviconUrl = pin.icon || getFavicon(pin.url);
 
-  const filteredCommands = query
-    ? commands.filter((cmd) =>
-        cmd.label.toLowerCase().includes(query.toLowerCase())
-      )
-    : commands;
+        return {
+          id: `pin-${pin.id}`,
+          label: pin.title,
+          description: new URL(pin.url).hostname,
+          icon: faviconUrl ? (
+            <div className="h-5 w-5 rounded-sm overflow-hidden relative">
+              <Image
+                src={faviconUrl}
+                alt={`${pin.title} icon`}
+                fill
+                sizes="20px"
+                className="object-cover"
+                onError={(e) => {
+                  const target = e.target as HTMLImageElement;
+                  target.style.display = "none";
+                  target.parentElement!.innerHTML =
+                    '<svg class="h-5 w-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14"></path></svg>';
+                }}
+                quality={75}
+                loading="lazy"
+              />
+            </div>
+          ) : (
+            <ExternalLink className="h-5 w-5" />
+          ),
+          action: () => {
+            window.open(pin.url, "_blank");
+            onClose();
+          },
+          category: "Pinned Sites",
+        };
+      }),
+    ],
+    [pins, theme, onOpenSettings, onToggleTheme, onToggleNotes, onClose]
+  );
+
+  // Memoize filtered commands
+  const filteredCommands = useMemo(
+    () =>
+      query
+        ? commands.filter((cmd) =>
+            cmd.label.toLowerCase().includes(query.toLowerCase())
+          )
+        : commands,
+    [query, commands]
+  );
 
   useEffect(() => {
     if (!isOpen) return;
@@ -195,7 +196,7 @@ export default function CommandPalette({
     if (!acc[cmd.category]) {
       acc[cmd.category] = [];
     }
-    acc[cmd.category].push(cmd);
+    acc[cmd.category]!.push(cmd);
     return acc;
   }, {} as Record<string, CommandItem[]>);
 
